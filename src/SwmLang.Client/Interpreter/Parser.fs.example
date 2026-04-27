@@ -1,0 +1,224 @@
+module Parser
+
+open System
+open System.Text
+open System.Text.RegularExpressions
+open AST
+
+type ParseError = {
+    Line: int
+    Message: string
+}
+
+exception ParseException of ParseError
+
+let private rx pattern = Regex(pattern, RegexOptions.Compiled)
+
+let private functionStart = rx @"^안녕하세요\s+(\S+)\s+멘토입니다$"
+let private signature = rx @"^멘토\s+소개:\s+https://notion\.so/(.*)$"
+let private returnLine = rx @"^\[([^\]]+)\]\s+마감되었습니다\.\s+감사합니다!$"
+let private declareLine = rx @"^이번에\s+\[([^\]]+)\]\s+\(정원\s+(-?\d+)\)\s+을\s+개설했습니다$"
+let private incrementLine = rx @"^\[([^\]]+)\]\s+신청\s+바랍니다$"
+let private decrementLine = rx @"^\[([^\]]+)\]\s+한자리\s+남았습니다$"
+let private assignSeatLine = rx @"^\[([^\]]+)\]\s+(\d+)자리\s+남았습니다$"
+let private assignRemainLine = rx @"^\[([^\]]+)\]\s+잔여\s+(\d+)명입니다$"
+let private assignShortLine = rx @"^\[([^\]]+)\]\s+(\d+)명\s+부족합니다$"
+let private putCharLine = rx @"^\[([^\]]+)\]\s+많은\s+관심\s+부탁드립니다$"
+let private printIntLine = rx @"^\[([^\]]+)\]\s+현재\s+인원\s+공유드립니다$"
+let private whileLine = rx @"^\[([^\]]+)\]\s+아직\s+마감되지\s+않아\s+한번\s+더\s+공지드립니다$"
+let private ifLine = rx @"^\[([^\]]+)\]\s+인원\s+미달이라$"
+let private elseLine = rx @"^인원이\s+미달이더라도$"
+let private blockEndLine = rx @"^참고\s+부탁드립니다$"
+let private callLine = rx @"^https://swmaestro\.ai/(.*)$"
+let private callAssignLine = rx @"^\[([^\]]+)\]\s+신청\s+링크:\s+https://swmaestro\.ai/(.*)$"
+
+type private SourceLine = {
+    Number: int
+    Text: string
+}
+
+let private failAt line message =
+    raise (ParseException { Line = line.Number; Message = message })
+
+let private decodeBase64 line encoded =
+    try
+        let bytes = Convert.FromBase64String(encoded)
+        Encoding.UTF8.GetString(bytes)
+    with ex ->
+        failAt line (sprintf "base64 디코딩 실패: %s (%s)" encoded ex.Message)
+
+let private splitLast (separator: string) (text: string) =
+    let index = text.LastIndexOf(separator, StringComparison.Ordinal)
+    if index < 0 then None
+    else Some(text.Substring(0, index), text.Substring(index + separator.Length))
+
+let private parseInt64 line (text: string) =
+    match Int64.TryParse(text) with
+    | true, value -> value
+    | false, _ -> failAt line (sprintf "정수 리터럴이 아닙니다: %s" text)
+
+let private parseSignature line text =
+    if String.IsNullOrWhiteSpace(text) then
+        []
+    else
+        text.Split('&', StringSplitOptions.RemoveEmptyEntries)
+        |> Array.map (fun item ->
+            match splitLast "==" item with
+            | Some(encoded, valueText) ->
+                decodeBase64 line encoded, parseInt64 line valueText
+            | None -> failAt line (sprintf "시그니처 파라미터 형식이 올바르지 않습니다: %s" item))
+        |> Array.toList
+
+let private parseCall line (text: string) =
+    let path, query =
+        let index = text.IndexOf('?')
+        if index < 0 then text, ""
+        else text.Substring(0, index), text.Substring(index + 1)
+
+    let args =
+        if String.IsNullOrWhiteSpace(query) then
+            Map.empty
+        else
+            query.Split('&', StringSplitOptions.RemoveEmptyEntries)
+            |> Array.map (fun item ->
+                match splitLast "=" item with
+                | Some(encoded, valueText) ->
+                    decodeBase64 line encoded, parseInt64 line valueText
+                | None -> failAt line (sprintf "호출 인자 형식이 올바르지 않습니다: %s" item))
+            |> Map.ofArray
+
+    { Name = decodeBase64 line path; Args = args }
+
+let private hasReachableReturn body =
+    let rec statementHasReturn stmt =
+        match stmt with
+        | Return _ -> true
+        | While(_, block) -> block |> List.exists statementHasReturn
+        | If(_, thenBlock, elseBlock) ->
+            (thenBlock |> List.exists statementHasReturn)
+            || (elseBlock |> Option.exists (List.exists statementHasReturn))
+        | _ -> false
+
+    body |> List.exists statementHasReturn
+
+let private parseLines (code: string) =
+    code.Replace("\r\n", "\n").Replace("\r", "\n").Split('\n')
+    |> Array.mapi (fun index text -> { Number = index + 1; Text = text.Trim() })
+    |> Array.filter (fun line -> line.Text <> "")
+    |> Array.toList
+
+let parse code =
+    let lines = parseLines code
+
+    let rec parseBlock stopAt index =
+        let rec loop index acc =
+            if index >= lines.Length then
+                acc |> List.rev, index, None
+            else
+                let line = lines.[index]
+                let text = line.Text
+                if stopAt |> List.exists (fun stop -> stop text) then
+                    acc |> List.rev, index, Some text
+                else
+                    let statement, nextIndex = parseStatement index
+                    loop nextIndex (statement :: acc)
+
+        loop index []
+
+    and parseStatement index =
+        let line = lines.[index]
+        let text = line.Text
+        let m (pattern: Regex) = pattern.Match(text)
+
+        let matched = m declareLine
+        if matched.Success then Declare(matched.Groups.[1].Value, parseInt64 line matched.Groups.[2].Value), index + 1
+        else
+            let matched = m incrementLine
+            if matched.Success then Increment matched.Groups.[1].Value, index + 1
+            else
+                let matched = m decrementLine
+                if matched.Success then Decrement matched.Groups.[1].Value, index + 1
+                else
+                    let matched = m assignSeatLine
+                    if matched.Success then Assign(matched.Groups.[1].Value, parseInt64 line matched.Groups.[2].Value), index + 1
+                    else
+                        let matched = m assignRemainLine
+                        if matched.Success then Assign(matched.Groups.[1].Value, parseInt64 line matched.Groups.[2].Value), index + 1
+                        else
+                            let matched = m assignShortLine
+                            if matched.Success then Assign(matched.Groups.[1].Value, -(parseInt64 line matched.Groups.[2].Value)), index + 1
+                            else
+                                let matched = m putCharLine
+                                if matched.Success then PutChar matched.Groups.[1].Value, index + 1
+                                else
+                                    let matched = m printIntLine
+                                    if matched.Success then PrintInt matched.Groups.[1].Value, index + 1
+                                    else
+                                        let matched = m returnLine
+                                        if matched.Success then Return matched.Groups.[1].Value, index + 1
+                                        else
+                                            let matched = m callAssignLine
+                                            if matched.Success then CallAssign(matched.Groups.[1].Value, parseCall line matched.Groups.[2].Value), index + 1
+                                            else
+                                                let matched = m callLine
+                                                if matched.Success then CallIgnore(parseCall line matched.Groups.[1].Value), index + 1
+                                                else
+                                                    let matched = m whileLine
+                                                    if matched.Success then
+                                                        let body, endIndex, stop = parseBlock [fun t -> blockEndLine.IsMatch(t)] (index + 1)
+                                                        match stop with
+                                                        | Some _ -> While(matched.Groups.[1].Value, body), endIndex + 1
+                                                        | None -> failAt line "while 블록 종료문이 없습니다"
+                                                    else
+                                                        let matched = m ifLine
+                                                        if matched.Success then
+                                                            let thenBlock, stopIndex, stop = parseBlock [ (fun t -> elseLine.IsMatch(t)); (fun t -> blockEndLine.IsMatch(t)) ] (index + 1)
+                                                            match stop with
+                                                            | Some stopText when elseLine.IsMatch(stopText) ->
+                                                                let elseBlock, endIndex, endStop = parseBlock [fun t -> blockEndLine.IsMatch(t)] (stopIndex + 1)
+                                                                match endStop with
+                                                                | Some _ -> If(matched.Groups.[1].Value, thenBlock, Some elseBlock), endIndex + 1
+                                                                | None -> failAt line "if else 블록 종료문이 없습니다"
+                                                            | Some _ -> If(matched.Groups.[1].Value, thenBlock, None), stopIndex + 1
+                                                            | None -> failAt line "if 블록 종료문이 없습니다"
+                                                        else
+                                                            if functionStart.IsMatch(text) || signature.IsMatch(text) || elseLine.IsMatch(text) || blockEndLine.IsMatch(text) then
+                                                                failAt line (sprintf "예상하지 못한 블록/함수 구문입니다: %s" text)
+                                                            else
+                                                                failAt line (sprintf "알 수 없는 구문입니다: %s" text)
+
+    let rec parseFunctionBody index acc =
+        if index >= lines.Length then
+            acc |> List.rev, index
+        else
+            let statement, nextIndex = parseStatement index
+            let nextAcc = statement :: acc
+            match statement with
+            | Return _ -> nextAcc |> List.rev, nextIndex
+            | _ -> parseFunctionBody nextIndex nextAcc
+
+    let rec parseTop index topLevel functions =
+        if index >= lines.Length then
+            let functionMap =
+                functions
+                |> List.map (fun fn -> fn.Name, fn)
+                |> Map.ofList
+            { Functions = functionMap; TopLevel = topLevel |> List.rev }
+        else
+            let line = lines.[index]
+            let matched = functionStart.Match(line.Text)
+            if matched.Success then
+                let name = matched.Groups.[1].Value
+                if index + 1 >= lines.Length then failAt line "함수 시그니처가 없습니다"
+                let sigLine = lines.[index + 1]
+                let sigMatch = signature.Match(sigLine.Text)
+                if not sigMatch.Success then failAt sigLine "함수 시그니처가 아닙니다"
+                let body, nextIndex = parseFunctionBody (index + 2) []
+                if not (hasReachableReturn body) then failAt line (sprintf "함수 '%s'에 종료문이 없습니다" name)
+                let fn = { Name = name; Parameters = parseSignature sigLine sigMatch.Groups.[1].Value; Body = body }
+                parseTop nextIndex topLevel (fn :: functions)
+            else
+                let statement, nextIndex = parseStatement index
+                parseTop nextIndex (statement :: topLevel) functions
+
+    parseTop 0 [] []

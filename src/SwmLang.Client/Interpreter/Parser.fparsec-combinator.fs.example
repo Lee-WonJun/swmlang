@@ -1,0 +1,298 @@
+module Parser
+
+open System
+open System.Text
+open FParsec
+open AST
+
+type ParseError = {
+    Line: int
+    Message: string
+}
+
+exception ParseException of ParseError
+
+type XParser<'T> = Parser<'T, unit>
+
+type private SourceLine = {
+    Number: int
+    Text: string
+}
+
+type private LineNode =
+    | FunctionStart of string
+    | Signature of string
+    | Statement of Statement
+    | Else
+    | BlockEnd
+
+let private failAt line message =
+    raise (ParseException { Line = line.Number; Message = message })
+
+let private decodeBase64 line encoded =
+    try
+        let bytes = Convert.FromBase64String(encoded)
+        Encoding.UTF8.GetString(bytes)
+    with ex ->
+        failAt line (sprintf "base64 디코딩 실패: %s (%s)" encoded ex.Message)
+
+let private splitLast (separator: string) (text: string) =
+    let index = text.LastIndexOf(separator, StringComparison.Ordinal)
+    if index < 0 then None
+    else Some(text.Substring(0, index), text.Substring(index + separator.Length))
+
+let private parseInt64 line (text: string) =
+    match Int64.TryParse(text) with
+    | true, value -> value
+    | false, _ -> failAt line (sprintf "정수 리터럴이 아닙니다: %s" text)
+
+let private parseSignature line text =
+    if String.IsNullOrWhiteSpace(text) then
+        []
+    else
+        text.Split('&', StringSplitOptions.RemoveEmptyEntries)
+        |> Array.map (fun item ->
+            match splitLast "==" item with
+            | Some(encoded, valueText) ->
+                decodeBase64 line encoded, parseInt64 line valueText
+            | None -> failAt line (sprintf "시그니처 파라미터 형식이 올바르지 않습니다: %s" item))
+        |> Array.toList
+
+let private parseCall line (text: string) =
+    let path, query =
+        let index = text.IndexOf('?')
+        if index < 0 then text, ""
+        else text.Substring(0, index), text.Substring(index + 1)
+
+    let args =
+        if String.IsNullOrWhiteSpace(query) then
+            Map.empty
+        else
+            query.Split('&', StringSplitOptions.RemoveEmptyEntries)
+            |> Array.map (fun item ->
+                match splitLast "=" item with
+                | Some(encoded, valueText) ->
+                    decodeBase64 line encoded, parseInt64 line valueText
+                | None -> failAt line (sprintf "호출 인자 형식이 올바르지 않습니다: %s" item))
+            |> Map.ofArray
+
+    { Name = decodeBase64 line path; Args = args }
+
+let private hasReachableReturn body =
+    let rec statementHasReturn stmt =
+        match stmt with
+        | Return _ -> true
+        | While(_, block) -> block |> List.exists statementHasReturn
+        | If(_, thenBlock, elseBlock) ->
+            (thenBlock |> List.exists statementHasReturn)
+            || (elseBlock |> Option.exists (List.exists statementHasReturn))
+        | _ -> false
+
+    body |> List.exists statementHasReturn
+
+let private ws1: XParser<unit> = skipMany1Satisfy Char.IsWhiteSpace
+let private rest: XParser<string> = restOfLine false
+let private eofLine: XParser<unit> = eof
+
+let private bracketIdentifier: XParser<string> =
+    between (pchar '[') (pchar ']') (many1Satisfy (fun c -> c <> ']'))
+
+let private unsignedNumberText: XParser<string> =
+    many1Satisfy Char.IsDigit
+
+let private signedNumber: XParser<int64> =
+    pint64
+
+let private exact p =
+    p .>> eofLine
+
+let private lineParsers (line: SourceLine): XParser<LineNode> =
+    let functionStart =
+        pipe2
+            (pstring "안녕하세요" >>. ws1 >>. many1Satisfy (fun c -> not (Char.IsWhiteSpace c)))
+            (ws1 >>. pstring "멘토입니다")
+            (fun name _ -> FunctionStart name)
+
+    let signature =
+        pstring "멘토" >>. ws1 >>. pstring "소개:" >>. ws1 >>. pstring "https://notion.so/" >>. rest
+        |>> Signature
+
+    let returnLine =
+        bracketIdentifier .>> ws1 .>> pstring "마감되었습니다. 감사합니다!"
+        |>> (Return >> Statement)
+
+    let declareLine =
+        pipe2
+            (pstring "이번에" >>. ws1 >>. bracketIdentifier)
+            (ws1 >>. pstring "(정원" >>. ws1 >>. signedNumber .>> pstring ")" .>> ws1 .>> pstring "을" .>> ws1 .>> pstring "개설했습니다")
+            (fun name value -> Statement(Declare(name, value)))
+
+    let incrementLine =
+        bracketIdentifier .>> ws1 .>> pstring "신청" .>> ws1 .>> pstring "바랍니다"
+        |>> (Increment >> Statement)
+
+    let decrementLine =
+        bracketIdentifier .>> ws1 .>> pstring "한자리" .>> ws1 .>> pstring "남았습니다"
+        |>> (Decrement >> Statement)
+
+    let assignSeatLine =
+        pipe2
+            (bracketIdentifier .>> ws1)
+            (unsignedNumberText .>> pstring "자리" .>> ws1 .>> pstring "남았습니다")
+            (fun name value -> Statement(Assign(name, parseInt64 line value)))
+
+    let assignRemainLine =
+        pipe2
+            (bracketIdentifier .>> ws1 .>> pstring "잔여" .>> ws1)
+            (unsignedNumberText .>> pstring "명입니다")
+            (fun name value -> Statement(Assign(name, parseInt64 line value)))
+
+    let assignShortLine =
+        pipe2
+            (bracketIdentifier .>> ws1)
+            (unsignedNumberText .>> pstring "명" .>> ws1 .>> pstring "부족합니다")
+            (fun name value -> Statement(Assign(name, -(parseInt64 line value))))
+
+    let putCharLine =
+        bracketIdentifier .>> ws1 .>> pstring "많은" .>> ws1 .>> pstring "관심" .>> ws1 .>> pstring "부탁드립니다"
+        |>> (PutChar >> Statement)
+
+    let printIntLine =
+        bracketIdentifier .>> ws1 .>> pstring "현재" .>> ws1 .>> pstring "인원" .>> ws1 .>> pstring "공유드립니다"
+        |>> (PrintInt >> Statement)
+
+    let whileLine =
+        bracketIdentifier .>> ws1 .>> pstring "아직" .>> ws1 .>> pstring "마감되지" .>> ws1 .>> pstring "않아" .>> ws1 .>> pstring "한번" .>> ws1 .>> pstring "더" .>> ws1 .>> pstring "공지드립니다"
+        |>> (fun name -> Statement(While(name, [])))
+
+    let ifLine =
+        bracketIdentifier .>> ws1 .>> pstring "인원" .>> ws1 .>> pstring "미달이라"
+        |>> (fun name -> Statement(If(name, [], None)))
+
+    let elseLine =
+        pstring "인원이" >>. ws1 >>. pstring "미달이더라도" >>% Else
+
+    let blockEndLine =
+        pstring "참고" >>. ws1 >>. pstring "부탁드립니다" >>% BlockEnd
+
+    let callLine =
+        pstring "https://swmaestro.ai/" >>. rest
+        |>> (fun callText -> Statement(CallIgnore(parseCall line callText)))
+
+    let callAssignLine =
+        pipe2
+            (bracketIdentifier .>> ws1 .>> pstring "신청" .>> ws1 .>> pstring "링크:" .>> ws1 .>> pstring "https://swmaestro.ai/")
+            rest
+            (fun name callText -> Statement(CallAssign(name, parseCall line callText)))
+
+    choice [
+        attempt functionStart
+        attempt signature
+        attempt declareLine
+        attempt incrementLine
+        attempt decrementLine
+        attempt assignSeatLine
+        attempt assignRemainLine
+        attempt assignShortLine
+        attempt putCharLine
+        attempt printIntLine
+        attempt whileLine
+        attempt ifLine
+        attempt elseLine
+        attempt blockEndLine
+        attempt callAssignLine
+        attempt callLine
+        attempt returnLine
+    ]
+    |> exact
+
+let private parseLine line =
+    match runParserOnString (lineParsers line) () (sprintf "line %d" line.Number) line.Text with
+    | Success(result, _, _) -> result
+    | Failure(message, _, _) -> failAt line (sprintf "알 수 없는 구문입니다: %s (%s)" line.Text message)
+
+let private parseLines (code: string) =
+    code.Replace("\r\n", "\n").Replace("\r", "\n").Split('\n')
+    |> Array.mapi (fun index text -> { Number = index + 1; Text = text.Trim() })
+    |> Array.filter (fun line -> line.Text <> "")
+    |> Array.map (fun line -> line, parseLine line)
+    |> Array.toList
+
+let parse code =
+    let lines = parseLines code
+
+    let rec parseBlock stopAt index =
+        let rec loop index acc =
+            if index >= lines.Length then
+                acc |> List.rev, index, None
+            else
+                let line, node = lines.[index]
+                if stopAt |> List.exists (fun stop -> stop node) then
+                    acc |> List.rev, index, Some node
+                else
+                    let statement, nextIndex = parseStatement index
+                    loop nextIndex (statement :: acc)
+
+        loop index []
+
+    and parseStatement index =
+        let line, node = lines.[index]
+        match node with
+        | Statement(While(name, [])) ->
+            let body, endIndex, stop = parseBlock [ (fun node -> node = BlockEnd) ] (index + 1)
+            match stop with
+            | Some _ -> While(name, body), endIndex + 1
+            | None -> failAt line "while 블록 종료문이 없습니다"
+        | Statement(If(name, [], None)) ->
+            let thenBlock, stopIndex, stop = parseBlock [ (fun node -> node = Else); (fun node -> node = BlockEnd) ] (index + 1)
+            match stop with
+            | Some Else ->
+                let elseBlock, endIndex, endStop = parseBlock [ (fun node -> node = BlockEnd) ] (stopIndex + 1)
+                match endStop with
+                | Some _ -> If(name, thenBlock, Some elseBlock), endIndex + 1
+                | None -> failAt line "if else 블록 종료문이 없습니다"
+            | Some BlockEnd -> If(name, thenBlock, None), stopIndex + 1
+            | _ -> failAt line "if 블록 종료문이 없습니다"
+        | Statement statement -> statement, index + 1
+        | FunctionStart _
+        | Signature _
+        | Else
+        | BlockEnd ->
+            failAt line (sprintf "예상하지 못한 블록/함수 구문입니다: %s" line.Text)
+
+    let rec parseFunctionBody index acc =
+        if index >= lines.Length then
+            acc |> List.rev, index
+        else
+            let statement, nextIndex = parseStatement index
+            let nextAcc = statement :: acc
+            match statement with
+            | Return _ -> nextAcc |> List.rev, nextIndex
+            | _ -> parseFunctionBody nextIndex nextAcc
+
+    let rec parseTop index topLevel functions =
+        if index >= lines.Length then
+            let functionMap =
+                functions
+                |> List.map (fun fn -> fn.Name, fn)
+                |> Map.ofList
+
+            { Functions = functionMap; TopLevel = topLevel |> List.rev }
+        else
+            let line, node = lines.[index]
+            match node with
+            | FunctionStart name ->
+                if index + 1 >= lines.Length then failAt line "함수 시그니처가 없습니다"
+                let sigLine, sigNode = lines.[index + 1]
+                match sigNode with
+                | Signature signatureText ->
+                    let body, nextIndex = parseFunctionBody (index + 2) []
+                    if not (hasReachableReturn body) then failAt line (sprintf "함수 '%s'에 종료문이 없습니다" name)
+                    let fn = { Name = name; Parameters = parseSignature sigLine signatureText; Body = body }
+                    parseTop nextIndex topLevel (fn :: functions)
+                | _ -> failAt sigLine "함수 시그니처가 아닙니다"
+            | _ ->
+                let statement, nextIndex = parseStatement index
+                parseTop nextIndex (statement :: topLevel) functions
+
+    parseTop 0 [] []
