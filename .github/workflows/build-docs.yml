@@ -1,0 +1,53 @@
+name: Build GitHub Pages docs
+
+on:
+  push:
+    branches:
+      - main
+      - master
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build-docs:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+
+      - name: Publish Blazor app
+        run: dotnet publish src/SwmLang.Client/SwmLang.Client.fsproj -c Release -o artifacts/publish
+
+      - name: Refresh docs
+        shell: pwsh
+        run: |
+          if (Test-Path docs) {
+            Remove-Item docs -Recurse -Force
+          }
+          New-Item -ItemType Directory -Path docs | Out-Null
+          Copy-Item artifacts/publish/wwwroot/* docs -Recurse -Force
+          New-Item -ItemType File -Path docs/.nojekyll -Force | Out-Null
+
+      - name: Commit docs
+        shell: pwsh
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add docs
+          if (git diff --cached --quiet) {
+            Write-Host "docs is already up to date."
+            exit 0
+          }
+          git commit -m "Build GitHub Pages docs"
+          git push
