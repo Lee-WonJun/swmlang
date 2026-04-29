@@ -118,6 +118,14 @@ https://swmaestro.ai/함수명_base64url?파라미터1_base64url=값&파라미�
 
 swmlang의 프리미티브(increment, decrement, zero-test while)는 2-counter machine의 명령어 집합과 정확히 대응하므로, 이 언어는 **튜링 완전**합니다.
 
+### 다중 함수 호출 (`examples/multi.swm`)
+
+함수 `이원준(함수형 특강=72)`: putchar 후 반환. 함수 `김멘토(커리어 상담=0)`: 이원준을 두 번 호출하여 H, I를 출력. top-level에서 김멘토를 호출한 뒤 이원준(33)으로 !를 출력하여 `HI!`를 완성합니다.
+
+### Exit Code (`examples/exit.swm`)
+
+top-level에서 변수를 선언하고 증가시킨 뒤 `마감되었습니다. 감사합니다!`로 반환하면 `X & 0xFF`가 exit code가 됩니다. 정원 3 + 신청 2 = 5 → exit code 5.
+
 ## 테스트
 
 ```bash

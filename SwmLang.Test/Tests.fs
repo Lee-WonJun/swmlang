@@ -283,9 +283,37 @@ let ``실행 - 2-counter machine 덧셈`` () =
 
 // ── 3개 파서 AST 동일성 검증 ──
 
+let private multiCode = """
+안녕하세요 이원준 멘토입니다
+멘토 소개: https://notion.so/7ZWo7IiY7ZiVIO2KueqwlQ==72
+
+[함수형 특강] 많은 관심 부탁드립니다
+
+[함수형 특강] 마감되었습니다. 감사합니다!
+
+
+안녕하세요 김멘토 멘토입니다
+멘토 소개: https://notion.so/7Luk66as7Ja0IOyDgeuLtA==0
+
+https://swmaestro.ai/7J207JuQ7KSA?7ZWo7IiY7ZiVIO2KueqwlQ=72
+https://swmaestro.ai/7J207JuQ7KSA?7ZWo7IiY7ZiVIO2KueqwlQ=73
+
+[커리어 상담] 마감되었습니다. 감사합니다!
+
+
+https://swmaestro.ai/6rmA66mY7Yag
+https://swmaestro.ai/7J207JuQ7KSA?7ZWo7IiY7ZiVIO2KueqwlQ=33
+"""
+
+[<Fact>]
+let ``실행 - 다중 함수 호출`` () =
+    for _, parse in parsers () do
+        let state = runWith parse multiCode
+        Assert.Equal("HI!", state.StandardOutput)
+
 [<Fact>]
 let ``파서 동일성 - 모든 예시에서 3개 파서가 같은 AST를 생성`` () =
-    let codes = [ hiCode; starCode; xoCode; multiplyCode; counterCode ]
+    let codes = [ hiCode; starCode; xoCode; multiplyCode; counterCode; multiCode ]
     for code in codes do
         let asts = parsers () |> Array.map (fun (name, parse) -> name, parse code)
         let _, baseline = asts.[0]
