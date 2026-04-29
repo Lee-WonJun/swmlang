@@ -2,26 +2,38 @@ module Tests
 
 open Xunit
 open AST
-open Parser
 open Interpreter
 
+let private parsers () =
+    [| "모나딕",    Parser.parse
+       "수동",      ParserManual.parse
+       "조합자",    ParserCombinator.parse |]
+
 let run code =
+    let ast = Parser.parse code
+    interpret ast ignore
+
+let private runWith parse code =
     let ast = parse code
     interpret ast ignore
 
+// ── 파싱 단위 테스트 ──
+
 [<Fact>]
 let ``파싱 - 변수 선언`` () =
-    let ast = parse "이번에 [횟수] (정원 5) 을 개설했습니다"
-    Assert.Equal<Block>([Declare("횟수", 5L)], ast.TopLevel)
+    for name, parse in parsers () do
+        let ast = parse "이번에 [횟수] (정원 5) 을 개설했습니다"
+        Assert.Equal<Block>([Declare("횟수", 5L)], ast.TopLevel)
 
 [<Fact>]
 let ``파싱 - 한자리와 숫자 자리 구분`` () =
-    let ast = parse "[횟수] 한자리 남았습니다\n[횟수] 1자리 남았습니다"
-    Assert.Equal<Block>([Decrement "횟수"; Assign("횟수", 1L)], ast.TopLevel)
+    for name, parse in parsers () do
+        let ast = parse "[횟수] 한자리 남았습니다\n[횟수] 1자리 남았습니다"
+        Assert.Equal<Block>([Decrement "횟수"; Assign("횟수", 1L)], ast.TopLevel)
 
-[<Fact>]
-let ``실행 - HI 출력`` () =
-    let code = """
+// ── 실행 테스트 ──
+
+let private hiCode = """
 안녕하세요 이원준 멘토입니다
 멘토 소개: https://notion.so/7ZWo7IiY7ZiVIO2KueqwlQ==72
 
@@ -34,13 +46,8 @@ https://swmaestro.ai/7J207JuQ7KSA?7ZWo7IiY7ZiVIO2KueqwlQ=72
 https://swmaestro.ai/7J207JuQ7KSA?7ZWo7IiY7ZiVIO2KueqwlQ=73
 https://swmaestro.ai/7J207JuQ7KSA?7ZWo7IiY7ZiVIO2KueqwlQ=33
 """
-    let state = run code
-    Assert.Equal("HI!", state.StandardOutput)
-    Assert.Equal(0, state.ExitCode)
 
-[<Fact>]
-let ``실행 - 별 N개 출력`` () =
-    let code = """
+let private starCode = """
 안녕하세요 이원준 멘토입니다
 멘토 소개: https://notion.so/SzhTIOyVjOyVhOuztOq4sA==5&64-E66mU7J24IOuqqOuNuOungQ==42
 
@@ -54,12 +61,8 @@ let ``실행 - 별 N개 출력`` () =
 
 https://swmaestro.ai/7J207JuQ7KSA?SzhTIOyVjOyVhOuztOq4sA=5
 """
-    let state = run code
-    Assert.Equal("*****", state.StandardOutput)
 
-[<Fact>]
-let ``실행 - 분기 XO`` () =
-    let code = """
+let private xoCode = """
 안녕하세요 이원준 멘토입니다
 멘토 소개: https://notion.so/7LC97JeFIOqyve2XmOuLtA==0
 
@@ -83,12 +86,8 @@ let ``실행 - 분기 XO`` () =
 [오후 5시] 많은 관심 부탁드립니다
 [오후 6시] 많은 관심 부탁드립니다
 """
-    let state = run code
-    Assert.Equal("XO", state.StandardOutput)
 
-[<Fact>]
-let ``실행 - 곱셈 예제`` () =
-    let code = """
+let private multiplyCode = """
 안녕하세요 이원준 멘토입니다
 멘토 소개: https://notion.so/7ZSE66Gt7YWM7YGsIOuPhOuplOyduA==3&7IukIOyCrOyaqeyekOulvCDrgYzslrTrqqjsnLzripQg6riw7ZqN==4
 
@@ -113,18 +112,8 @@ let ``실행 - 곱셈 예제`` () =
 [커리어 상담] 신청 링크: https://swmaestro.ai/7J207JuQ7KSA?7ZSE66Gt7YWM7YGsIOuPhOuplOyduA=3&7IukIOyCrOyaqeyekOulvCDrgYzslrTrqqjsnLzripQg6riw7ZqN=4
 [커리어 상담] 현재 인원 공유드립니다
 """
-    let state = run code
-    Assert.Equal("12", state.StandardOutput)
 
-[<Fact>]
-let ``실행 - top-level return은 exit code`` () =
-    let state = run "이번에 [종료] (정원 257) 을 개설했습니다\n[종료] 마감되었습니다. 감사합니다!\n[종료] 현재 인원 공유드립니다"
-    Assert.Equal(1, state.ExitCode)
-    Assert.Equal("", state.StandardOutput)
-
-[<Fact>]
-let ``실행 - 2-counter machine 덧셈`` () =
-    let code = """
+let private counterCode = """
 안녕하세요 이원준 멘토입니다
 멘토 소개: https://notion.so/7ZWo7IiY7ZiVIO2KueqwlQ==0&7LC97JeFIOqyve2XmOuLtA==0
 
@@ -140,5 +129,54 @@ let ``실행 - 2-counter machine 덧셈`` () =
 [결과] 신청 링크: https://swmaestro.ai/7J207JuQ7KSA?7ZWo7IiY7ZiVIO2KueqwlQ=3&7LC97JeFIOqyve2XmOuLtA=4
 [결과] 현재 인원 공유드립니다
 """
-    let state = run code
-    Assert.Equal("7", state.StandardOutput)
+
+[<Fact>]
+let ``실행 - HI 출력`` () =
+    for name, parse in parsers () do
+        let state = runWith parse hiCode
+        Assert.Equal("HI!", state.StandardOutput)
+        Assert.Equal(0, state.ExitCode)
+
+[<Fact>]
+let ``실행 - 별 N개 출력`` () =
+    for name, parse in parsers () do
+        let state = runWith parse starCode
+        Assert.Equal("*****", state.StandardOutput)
+
+[<Fact>]
+let ``실행 - 분기 XO`` () =
+    for name, parse in parsers () do
+        let state = runWith parse xoCode
+        Assert.Equal("XO", state.StandardOutput)
+
+[<Fact>]
+let ``실행 - 곱셈 예제`` () =
+    for name, parse in parsers () do
+        let state = runWith parse multiplyCode
+        Assert.Equal("12", state.StandardOutput)
+
+[<Fact>]
+let ``실행 - top-level return은 exit code`` () =
+    let code = "이번에 [종료] (정원 257) 을 개설했습니다\n[종료] 마감되었습니다. 감사합니다!\n[종료] 현재 인원 공유드립니다"
+    for name, parse in parsers () do
+        let state = runWith parse code
+        Assert.Equal(1, state.ExitCode)
+        Assert.Equal("", state.StandardOutput)
+
+[<Fact>]
+let ``실행 - 2-counter machine 덧셈`` () =
+    for name, parse in parsers () do
+        let state = runWith parse counterCode
+        Assert.Equal("7", state.StandardOutput)
+
+// ── 3개 파서 AST 동일성 검증 ──
+
+[<Fact>]
+let ``파서 동일성 - 모든 예시에서 3개 파서가 같은 AST를 생성`` () =
+    let codes = [ hiCode; starCode; xoCode; multiplyCode; counterCode ]
+    for code in codes do
+        let asts = parsers () |> Array.map (fun (name, parse) -> name, parse code)
+        let _, baseline = asts.[0]
+        for i in 1 .. asts.Length - 1 do
+            let name, ast = asts.[i]
+            Assert.Equal<Program>(baseline, ast)

@@ -1,4 +1,4 @@
-module Parser
+module ParserManual
 
 open System
 open System.Text

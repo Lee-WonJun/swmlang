@@ -8,6 +8,8 @@
   <ItemGroup>
     <Compile Include="Interpreter\AST.fs" />
     <Compile Include="Interpreter\Parser.fs" />
+    <Compile Include="Interpreter\ParserManual.fs" />
+    <Compile Include="Interpreter\ParserCombinator.fs" />
     <Compile Include="Interpreter\Interpreter.fs" />
     <Compile Include="Storage.fs" />
     <Compile Include="Main.fs" />

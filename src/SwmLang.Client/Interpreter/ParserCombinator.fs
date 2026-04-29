@@ -1,4 +1,4 @@
-module Parser
+module ParserCombinator
 
 open System
 open System.Text
