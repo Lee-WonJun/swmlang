@@ -32,12 +32,12 @@ let private failAt line message =
 let private decodeBase64Url line (encoded: string) =
     try
         let s = encoded.Replace('-', '+').Replace('_', '/')
-        let padded = match s.Length % 4 with
-                     | 2 -> s + "=="
-                     | 3 -> s + "="
-                     | _ -> s
-        let bytes = Convert.FromBase64String(padded)
-        Encoding.UTF8.GetString(bytes)
+        let padded =
+            match s.Length % 4 with
+            | 2 -> s + "=="
+            | 3 -> s + "="
+            | _ -> s
+        Encoding.UTF8.GetString(Convert.FromBase64String(padded))
     with ex ->
         failAt line (sprintf "base64url 디코딩 실패: %s (%s)" encoded ex.Message)
 
@@ -52,231 +52,208 @@ let private parseInt64 line (text: string) =
     | false, _ -> failAt line (sprintf "정수 리터럴이 아닙니다: %s" text)
 
 let private parseSignature line text =
-    if String.IsNullOrWhiteSpace(text) then
-        []
+    if String.IsNullOrWhiteSpace(text) then []
     else
         text.Split('&', StringSplitOptions.RemoveEmptyEntries)
         |> Array.map (fun item ->
             match splitLast "==" item with
-            | Some(encoded, valueText) ->
-                decodeBase64Url line encoded, parseInt64 line valueText
+            | Some(encoded, v) -> decodeBase64Url line encoded, parseInt64 line v
             | None -> failAt line (sprintf "시그니처 파라미터 형식이 올바르지 않습니다: %s" item))
         |> Array.toList
 
 let private parseCall line (text: string) =
     let path, query =
-        let index = text.IndexOf('?')
-        if index < 0 then text, ""
-        else text.Substring(0, index), text.Substring(index + 1)
+        match text.IndexOf('?') with
+        | -1 -> text, ""
+        | i  -> text.Substring(0, i), text.Substring(i + 1)
 
     let args =
-        if String.IsNullOrWhiteSpace(query) then
-            Map.empty
+        if String.IsNullOrWhiteSpace(query) then Map.empty
         else
             query.Split('&', StringSplitOptions.RemoveEmptyEntries)
             |> Array.map (fun item ->
                 match splitLast "=" item with
-                | Some(encoded, valueText) ->
-                    decodeBase64Url line encoded, parseInt64 line valueText
+                | Some(encoded, v) -> decodeBase64Url line encoded, parseInt64 line v
                 | None -> failAt line (sprintf "호출 인자 형식이 올바르지 않습니다: %s" item))
             |> Map.ofArray
 
     { Name = decodeBase64Url line path; Args = args }
 
 let private hasReachableReturn body =
-    let rec statementHasReturn stmt =
-        match stmt with
+    let rec check = function
         | Return _ -> true
-        | While(_, block) -> block |> List.exists statementHasReturn
-        | If(_, thenBlock, elseBlock) ->
-            (thenBlock |> List.exists statementHasReturn)
-            || (elseBlock |> Option.exists (List.exists statementHasReturn))
+        | While(_, block) -> block |> List.exists check
+        | If(_, t, e) -> (t |> List.exists check) || (e |> Option.exists (List.exists check))
         | _ -> false
+    body |> List.exists check
 
-    body |> List.exists statementHasReturn
+// ── FParsec 기본 조합자 ──
 
-let private ws1: XParser<unit> = skipMany1Satisfy Char.IsWhiteSpace
+let private ws: XParser<unit> = skipMany1Satisfy Char.IsWhiteSpace
 let private rest: XParser<string> = restOfLine false
-let private eofLine: XParser<unit> = eof
 
-let private bracketIdentifier: XParser<string> =
+/// [이름] 형태의 대괄호 식별자
+let private bracket: XParser<string> =
     between (pchar '[') (pchar ']') (many1Satisfy (fun c -> c <> ']'))
 
-let private unsignedNumberText: XParser<string> =
+/// 부호 없는 숫자 문자열
+let private digits: XParser<string> =
     many1Satisfy Char.IsDigit
 
-let private signedNumber: XParser<int64> =
-    pint64
+/// 공백으로 구분된 키워드 시퀀스를 하나의 파서로 결합
+let private keywords (words: string list) : XParser<unit> =
+    words
+    |> List.map (fun w -> skipString w)
+    |> List.reduce (fun a b -> a >>. ws >>. b)
 
-let private exact p =
-    p .>> eofLine
+/// 파서 결과를 줄 끝까지 정확히 매칭
+let private exact p = p .>> eof
 
-let private lineParsers (line: SourceLine): XParser<LineNode> =
+// ── 라인 파서 ──
+
+let private lineParsers (line: SourceLine) : XParser<LineNode> =
+
+    // 안녕하세요 <name> 멘토입니다
     let functionStart = parse {
-        do! skipString "안녕하세요" >>. ws1
+        do! keywords ["안녕하세요"]
+        do! ws
         let! name = many1Satisfy (fun c -> not (Char.IsWhiteSpace c))
-        do! ws1 >>. skipString "멘토입니다"
+        do! ws >>. skipString "멘토입니다"
         return FunctionStart name
     }
 
-    let signature = parse {
-        do! skipString "멘토" >>. ws1
-        do! skipString "소개:" >>. ws1
-        do! skipString "https://notion.so/"
-        let! text = rest
-        return Signature text
-    }
+    // 멘토 소개: https://notion.so/<시그니처>
+    let signature =
+        keywords ["멘토"; "소개:"] >>. ws >>. skipString "https://notion.so/" >>. rest
+        |>> Signature
 
-    let returnLine = parse {
-        let! name = bracketIdentifier
-        do! ws1 >>. skipString "마감되었습니다. 감사합니다!"
-        return Statement(Return name)
-    }
+    // [X] 마감되었습니다. 감사합니다!
+    let returnStmt =
+        bracket .>> ws .>> skipString "마감되었습니다. 감사합니다!"
+        |>> (Return >> Statement)
 
-    let declareLine = parse {
-        do! skipString "이번에" >>. ws1
-        let! name = bracketIdentifier
-        do! ws1 >>. skipString "(정원" >>. ws1
-        let! value = signedNumber
-        do! skipString ")" >>. ws1
-        do! skipString "을" >>. ws1
-        do! skipString "개설했습니다"
+    // 이번에 [X] (정원 N) 을 개설했습니다
+    let declare = parse {
+        do! skipString "이번에" >>. ws
+        let! name = bracket
+        do! ws >>. skipString "(정원" >>. ws
+        let! value = pint64
+        do! skipString ")" >>. ws
+        do! keywords ["을"; "개설했습니다"]
         return Statement(Declare(name, value))
     }
 
-    let incrementLine = parse {
-        let! name = bracketIdentifier
-        do! ws1 >>. skipString "신청" >>. ws1
-        do! skipString "바랍니다"
-        return Statement(Increment name)
+    // [X] 신청 바랍니다
+    let increment =
+        bracket .>> ws .>> keywords ["신청"; "바랍니다"]
+        |>> (Increment >> Statement)
+
+    // [X] 한자리 남았습니다
+    let decrement =
+        bracket .>> ws .>> keywords ["한자리"; "남았습니다"]
+        |>> (Decrement >> Statement)
+
+    // [X] N자리 남았습니다
+    let assignSeat = parse {
+        let! name = bracket .>> ws
+        let! n = digits
+        do! keywords ["자리"; "남았습니다"]
+        return Statement(Assign(name, parseInt64 line n))
     }
 
-    let decrementLine = parse {
-        let! name = bracketIdentifier
-        do! ws1 >>. skipString "한자리" >>. ws1
-        do! skipString "남았습니다"
-        return Statement(Decrement name)
-    }
-
-    let assignSeatLine = parse {
-        let! name = bracketIdentifier
-        do! ws1
-        let! value = unsignedNumberText
-        do! skipString "자리" >>. ws1
-        do! skipString "남았습니다"
-        return Statement(Assign(name, parseInt64 line value))
-    }
-
-    let assignRemainLine = parse {
-        let! name = bracketIdentifier
-        do! ws1 >>. skipString "잔여" >>. ws1
-        let! value = unsignedNumberText
+    // [X] 잔여 N명입니다
+    let assignRemain = parse {
+        let! name = bracket .>> ws
+        do! keywords ["잔여"] >>. ws
+        let! n = digits
         do! skipString "명입니다"
-        return Statement(Assign(name, parseInt64 line value))
+        return Statement(Assign(name, parseInt64 line n))
     }
 
-    let assignShortLine = parse {
-        let! name = bracketIdentifier
-        do! ws1
-        let! value = unsignedNumberText
-        do! skipString "명" >>. ws1
-        do! skipString "부족합니다"
-        return Statement(Assign(name, -(parseInt64 line value)))
+    // [X] N명 부족합니다
+    let assignShort = parse {
+        let! name = bracket .>> ws
+        let! n = digits
+        do! keywords ["명"; "부족합니다"]
+        return Statement(Assign(name, -(parseInt64 line n)))
     }
 
-    let putCharLine = parse {
-        let! name = bracketIdentifier
-        do! ws1 >>. skipString "많은" >>. ws1
-        do! skipString "관심" >>. ws1
-        do! skipString "부탁드립니다"
-        return Statement(PutChar name)
-    }
+    // [X] 많은 관심 부탁드립니다
+    let putChar =
+        bracket .>> ws .>> keywords ["많은"; "관심"; "부탁드립니다"]
+        |>> (PutChar >> Statement)
 
-    let printIntLine = parse {
-        let! name = bracketIdentifier
-        do! ws1 >>. skipString "현재" >>. ws1
-        do! skipString "인원" >>. ws1
-        do! skipString "공유드립니다"
-        return Statement(PrintInt name)
-    }
+    // [X] 현재 인원 공유드립니다
+    let printInt =
+        bracket .>> ws .>> keywords ["현재"; "인원"; "공유드립니다"]
+        |>> (PrintInt >> Statement)
 
-    let whileLine = parse {
-        let! name = bracketIdentifier
-        do! ws1 >>. skipString "아직" >>. ws1
-        do! skipString "마감되지" >>. ws1
-        do! skipString "않아" >>. ws1
-        do! skipString "한번" >>. ws1
-        do! skipString "더" >>. ws1
-        do! skipString "공지드립니다"
-        return Statement(While(name, []))
-    }
+    // [X] 아직 마감되지 않아 한번 더 공지드립니다
+    let whileStmt =
+        bracket .>> ws .>> keywords ["아직"; "마감되지"; "않아"; "한번"; "더"; "공지드립니다"]
+        |>> (fun name -> Statement(While(name, [])))
 
-    let ifLine = parse {
-        let! name = bracketIdentifier
-        do! ws1 >>. skipString "인원" >>. ws1
-        do! skipString "미달이라"
-        return Statement(If(name, [], None))
-    }
+    // [X] 인원 미달이라
+    let ifStmt =
+        bracket .>> ws .>> keywords ["인원"; "미달이라"]
+        |>> (fun name -> Statement(If(name, [], None)))
 
-    let elseLine = parse {
-        do! skipString "인원이" >>. ws1
-        do! skipString "미달이더라도"
-        return Else
-    }
+    // 인원이 미달이더라도
+    let elseStmt =
+        keywords ["인원이"; "미달이더라도"] >>% Else
 
-    let blockEndLine = parse {
-        do! skipString "참고" >>. ws1
-        do! skipString "부탁드립니다"
-        return BlockEnd
-    }
+    // 참고 부탁드립니다
+    let blockEnd =
+        keywords ["참고"; "부탁드립니다"] >>% BlockEnd
 
-    let callLine = parse {
+    // https://swmaestro.ai/<호출>
+    let call =
+        skipString "https://swmaestro.ai/" >>. rest
+        |>> (fun t -> Statement(CallIgnore(parseCall line t)))
+
+    // [X] 신청 링크: https://swmaestro.ai/<호출>
+    let callAssign = parse {
+        let! name = bracket
+        do! ws >>. keywords ["신청"; "링크:"] >>. ws
         do! skipString "https://swmaestro.ai/"
-        let! callText = rest
-        return Statement(CallIgnore(parseCall line callText))
-    }
-
-    let callAssignLine = parse {
-        let! name = bracketIdentifier
-        do! ws1 >>. skipString "신청" >>. ws1
-        do! skipString "링크:" >>. ws1
-        do! skipString "https://swmaestro.ai/"
-        let! callText = rest
-        return Statement(CallAssign(name, parseCall line callText))
+        let! t = rest
+        return Statement(CallAssign(name, parseCall line t))
     }
 
     choice [
         attempt functionStart
         attempt signature
-        attempt declareLine
-        attempt incrementLine
-        attempt decrementLine
-        attempt assignSeatLine
-        attempt assignRemainLine
-        attempt assignShortLine
-        attempt putCharLine
-        attempt printIntLine
-        attempt whileLine
-        attempt ifLine
-        attempt elseLine
-        attempt blockEndLine
-        attempt callAssignLine
-        attempt callLine
-        attempt returnLine
+        attempt declare
+        attempt increment
+        attempt decrement
+        attempt assignSeat
+        attempt assignRemain
+        attempt assignShort
+        attempt putChar
+        attempt printInt
+        attempt whileStmt
+        attempt ifStmt
+        attempt elseStmt
+        attempt blockEnd
+        attempt callAssign
+        attempt call
+        attempt returnStmt
     ]
     |> exact
 
 let private parseLine line =
     match runParserOnString (lineParsers line) () (sprintf "line %d" line.Number) line.Text with
     | Success(result, _, _) -> result
-    | Failure(message, _, _) -> failAt line (sprintf "알 수 없는 구문입니다: %s (%s)" line.Text message)
+    | Failure(msg, _, _) -> failAt line (sprintf "알 수 없는 구문입니다: %s (%s)" line.Text msg)
 
 let private parseLines (code: string) =
     code.Replace("\r\n", "\n").Replace("\r", "\n").Split('\n')
-    |> Array.mapi (fun index text -> { Number = index + 1; Text = text.Trim() })
+    |> Array.mapi (fun i text -> { Number = i + 1; Text = text.Trim() })
     |> Array.filter (fun line -> line.Text <> "")
     |> Array.map (fun line -> line, parseLine line)
     |> Array.toList
+
+// ── 블록/프로그램 구조 파싱 ──
 
 let parse code =
     let lines = parseLines code
@@ -286,58 +263,54 @@ let parse code =
             if index >= lines.Length then
                 acc |> List.rev, index, None
             else
-                let line, node = lines.[index]
+                let _, node = lines.[index]
                 if stopAt |> List.exists (fun stop -> stop node) then
                     acc |> List.rev, index, Some node
                 else
-                    let statement, nextIndex = parseStatement index
-                    loop nextIndex (statement :: acc)
-
+                    let stmt, next = parseStatement index
+                    loop next (stmt :: acc)
         loop index []
 
     and parseStatement index =
         let line, node = lines.[index]
         match node with
         | Statement(While(name, [])) ->
-            let body, endIndex, stop = parseBlock [ (fun node -> node = BlockEnd) ] (index + 1)
+            let body, endIdx, stop = parseBlock [ ((=) BlockEnd) ] (index + 1)
             match stop with
-            | Some _ -> While(name, body), endIndex + 1
-            | None -> failAt line "while 블록 종료문이 없습니다"
+            | Some _ -> While(name, body), endIdx + 1
+            | None   -> failAt line "while 블록 종료문이 없습니다"
+
         | Statement(If(name, [], None)) ->
-            let thenBlock, stopIndex, stop = parseBlock [ (fun node -> node = Else); (fun node -> node = BlockEnd) ] (index + 1)
+            let thenBlock, stopIdx, stop =
+                parseBlock [ ((=) Else); ((=) BlockEnd) ] (index + 1)
             match stop with
             | Some Else ->
-                let elseBlock, endIndex, endStop = parseBlock [ (fun node -> node = BlockEnd) ] (stopIndex + 1)
+                let elseBlock, endIdx, endStop = parseBlock [ ((=) BlockEnd) ] (stopIdx + 1)
                 match endStop with
-                | Some _ -> If(name, thenBlock, Some elseBlock), endIndex + 1
-                | None -> failAt line "if else 블록 종료문이 없습니다"
-            | Some BlockEnd -> If(name, thenBlock, None), stopIndex + 1
+                | Some _ -> If(name, thenBlock, Some elseBlock), endIdx + 1
+                | None   -> failAt line "if else 블록 종료문이 없습니다"
+            | Some BlockEnd ->
+                If(name, thenBlock, None), stopIdx + 1
             | _ -> failAt line "if 블록 종료문이 없습니다"
-        | Statement statement -> statement, index + 1
-        | FunctionStart _
-        | Signature _
-        | Else
-        | BlockEnd ->
+
+        | Statement stmt -> stmt, index + 1
+
+        | FunctionStart _ | Signature _ | Else | BlockEnd ->
             failAt line (sprintf "예상하지 못한 블록/함수 구문입니다: %s" line.Text)
 
     let rec parseFunctionBody index acc =
-        if index >= lines.Length then
-            acc |> List.rev, index
+        if index >= lines.Length then acc |> List.rev, index
         else
-            let statement, nextIndex = parseStatement index
-            let nextAcc = statement :: acc
-            match statement with
-            | Return _ -> nextAcc |> List.rev, nextIndex
-            | _ -> parseFunctionBody nextIndex nextAcc
+            let stmt, next = parseStatement index
+            let acc = stmt :: acc
+            match stmt with
+            | Return _ -> acc |> List.rev, next
+            | _        -> parseFunctionBody next acc
 
     let rec parseTop index topLevel functions =
         if index >= lines.Length then
-            let functionMap =
-                functions
-                |> List.map (fun fn -> fn.Name, fn)
-                |> Map.ofList
-
-            { Functions = functionMap; TopLevel = topLevel |> List.rev }
+            { Functions = functions |> List.map (fun fn -> fn.Name, fn) |> Map.ofList
+              TopLevel = topLevel |> List.rev }
         else
             let line, node = lines.[index]
             match node with
@@ -345,14 +318,15 @@ let parse code =
                 if index + 1 >= lines.Length then failAt line "함수 시그니처가 없습니다"
                 let sigLine, sigNode = lines.[index + 1]
                 match sigNode with
-                | Signature signatureText ->
-                    let body, nextIndex = parseFunctionBody (index + 2) []
-                    if not (hasReachableReturn body) then failAt line (sprintf "함수 '%s'에 종료문이 없습니다" name)
-                    let fn = { Name = name; Parameters = parseSignature sigLine signatureText; Body = body }
-                    parseTop nextIndex topLevel (fn :: functions)
+                | Signature sigText ->
+                    let body, next = parseFunctionBody (index + 2) []
+                    if not (hasReachableReturn body) then
+                        failAt line (sprintf "함수 '%s'에 종료문이 없습니다" name)
+                    let fn = { Name = name; Parameters = parseSignature sigLine sigText; Body = body }
+                    parseTop next topLevel (fn :: functions)
                 | _ -> failAt sigLine "함수 시그니처가 아닙니다"
             | _ ->
-                let statement, nextIndex = parseStatement index
-                parseTop nextIndex (statement :: topLevel) functions
+                let stmt, next = parseStatement index
+                parseTop next (stmt :: topLevel) functions
 
     parseTop 0 [] []

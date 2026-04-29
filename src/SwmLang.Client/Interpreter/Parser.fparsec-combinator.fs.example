@@ -29,12 +29,18 @@ type private LineNode =
 let private failAt line message =
     raise (ParseException { Line = line.Number; Message = message })
 
-let private decodeBase64 line encoded =
+let private decodeBase64Url line (encoded: string) =
     try
-        let bytes = Convert.FromBase64String(encoded)
+        let s = encoded.Replace('-', '+').Replace('_', '/')
+        let padded =
+            match s.Length % 4 with
+            | 2 -> s + "=="
+            | 3 -> s + "="
+            | _ -> s
+        let bytes = Convert.FromBase64String(padded)
         Encoding.UTF8.GetString(bytes)
     with ex ->
-        failAt line (sprintf "base64 디코딩 실패: %s (%s)" encoded ex.Message)
+        failAt line (sprintf "base64url 디코딩 실패: %s (%s)" encoded ex.Message)
 
 let private splitLast (separator: string) (text: string) =
     let index = text.LastIndexOf(separator, StringComparison.Ordinal)
@@ -54,7 +60,7 @@ let private parseSignature line text =
         |> Array.map (fun item ->
             match splitLast "==" item with
             | Some(encoded, valueText) ->
-                decodeBase64 line encoded, parseInt64 line valueText
+                decodeBase64Url line encoded, parseInt64 line valueText
             | None -> failAt line (sprintf "시그니처 파라미터 형식이 올바르지 않습니다: %s" item))
         |> Array.toList
 
@@ -72,11 +78,11 @@ let private parseCall line (text: string) =
             |> Array.map (fun item ->
                 match splitLast "=" item with
                 | Some(encoded, valueText) ->
-                    decodeBase64 line encoded, parseInt64 line valueText
+                    decodeBase64Url line encoded, parseInt64 line valueText
                 | None -> failAt line (sprintf "호출 인자 형식이 올바르지 않습니다: %s" item))
             |> Map.ofArray
 
-    { Name = decodeBase64 line path; Args = args }
+    { Name = decodeBase64Url line path; Args = args }
 
 let private hasReachableReturn body =
     let rec statementHasReturn stmt =
