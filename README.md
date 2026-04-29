@@ -114,7 +114,7 @@ https://swmaestro.ai/함수명_base64url?파라미터1_base64url=값&파라미�
 
 ### 2-Counter Machine 덧셈 (`examples/counter.swm`)
 
-함수 `이원준(카운터A=0, 카운터B=0)`: while 카운터A≠0 동안 카운터B++, 카운터A--. 호출 시 카운터A=3, 카운터B=4를 전달하여 3+4=7을 출력합니다.
+함수 `이원준(함수형 특강=0, 창업 경험담=0)`: while 함수형 특강≠0 동안 창업 경험담++, 함수형 특강--. 호출 시 함수형 특강=3, 창업 경험담=4를 전달하여 3+4=7을 출력합니다.
 
 swmlang의 프리미티브(increment, decrement, zero-test while)는 2-counter machine의 명령어 집합과 정확히 대응하므로, 이 언어는 **튜링 완전**합니다.
 
