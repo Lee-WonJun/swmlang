@@ -2,7 +2,7 @@
 
 Software Maestro Programming Language.
 
-`swmlang`은 SW마에스트로 멘토방 공지 메시지처럼 보이는 esolang입니다. 이 구현은 `../CobangLang`과 같은 F#/.NET + xUnit 테스트 스택을 사용합니다.
+`swmlang`은 SW마에스트로 멘토방 공지 메시지처럼 보이는 esolang입니다.
 
 ## 구조
 
