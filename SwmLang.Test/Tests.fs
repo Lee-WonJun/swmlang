@@ -268,6 +268,14 @@ let ``실행 - top-level return은 exit code`` () =
         Assert.Equal("", state.StandardOutput)
 
 [<Fact>]
+let ``실행 - exit code 예제`` () =
+    let code = "이번에 [도메인 모델링] (정원 3) 을 개설했습니다\n[도메인 모델링] 신청 바랍니다\n[도메인 모델링] 신청 바랍니다\n[도메인 모델링] 마감되었습니다. 감사합니다!"
+    for _, parse in parsers () do
+        let state = runWith parse code
+        Assert.Equal(5, state.ExitCode)
+        Assert.Equal("", state.StandardOutput)
+
+[<Fact>]
 let ``실행 - 2-counter machine 덧셈`` () =
     for name, parse in parsers () do
         let state = runWith parse counterCode
