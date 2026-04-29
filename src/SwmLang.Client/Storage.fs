@@ -106,7 +106,7 @@ let multi = """안녕하세요 이원준 멘토입니다
 [함수형 특강] 마감되었습니다. 감사합니다!
 
 
-안녕하세요 김멘토 멘토입니다
+안녕하세요 김민수 멘토입니다
 멘토 소개: https://notion.so/7Luk66as7Ja0IOyDgeuLtA==0
 
 https://swmaestro.ai/7J207JuQ7KSA?7ZWo7IiY7ZiVIO2KueqwlQ=72
@@ -115,7 +115,7 @@ https://swmaestro.ai/7J207JuQ7KSA?7ZWo7IiY7ZiVIO2KueqwlQ=73
 [커리어 상담] 마감되었습니다. 감사합니다!
 
 
-https://swmaestro.ai/6rmA66mY7Yag
+https://swmaestro.ai/6rmA66-87IiY
 https://swmaestro.ai/7J207JuQ7KSA?7ZWo7IiY7ZiVIO2KueqwlQ=33
 """
 

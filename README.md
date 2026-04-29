@@ -120,7 +120,7 @@ swmlang의 프리미티브(increment, decrement, zero-test while)는 2-counter m
 
 ### 다중 함수 호출 (`examples/multi.swm`)
 
-함수 `이원준(함수형 특강=72)`: putchar 후 반환. 함수 `김멘토(커리어 상담=0)`: 이원준을 두 번 호출하여 H, I를 출력. top-level에서 김멘토를 호출한 뒤 이원준(33)으로 !를 출력하여 `HI!`를 완성합니다.
+함수 `이원준(함수형 특강=72)`: putchar 후 반환. 함수 `김민수(커리어 상담=0)`: 이원준을 두 번 호출하여 H, I를 출력. top-level에서 김민수를 호출한 뒤 이원준(33)으로 !를 출력하여 `HI!`를 완성합니다.
 
 ### Exit Code (`examples/exit.swm`)
 
