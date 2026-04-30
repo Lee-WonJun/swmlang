@@ -9,22 +9,46 @@ let hi = """안녕하세요 이원준 멘토입니다
 
 
 https://swmaestro.ai/7J207JuQ7KSA?7ZWo7IiY7ZiVIO2KueqwlQ=72
-https://swmaestro.ai/7J207JuQ7KSA?7ZWo7IiY7ZiVIO2KueqwlQ=73
+https://swmaestro.ai/7J207JuQ7KSA?7ZWo7IiY7ZiVIO2KueqwlQ=101
+https://swmaestro.ai/7J207JuQ7KSA?7ZWo7IiY7ZiVIO2KueqwlQ=108
+https://swmaestro.ai/7J207JuQ7KSA?7ZWo7IiY7ZiVIO2KueqwlQ=108
+https://swmaestro.ai/7J207JuQ7KSA?7ZWo7IiY7ZiVIO2KueqwlQ=111
+https://swmaestro.ai/7J207JuQ7KSA?7ZWo7IiY7ZiVIO2KueqwlQ=32
+https://swmaestro.ai/7J207JuQ7KSA?7ZWo7IiY7ZiVIO2KueqwlQ=65
+https://swmaestro.ai/7J207JuQ7KSA?7ZWo7IiY7ZiVIO2KueqwlQ=83
+https://swmaestro.ai/7J207JuQ7KSA?7ZWo7IiY7ZiVIO2KueqwlQ=87
+https://swmaestro.ai/7J207JuQ7KSA?7ZWo7IiY7ZiVIO2KueqwlQ=33
 https://swmaestro.ai/7J207JuQ7KSA?7ZWo7IiY7ZiVIO2KueqwlQ=33
 """
 
 let star = """안녕하세요 이원준 멘토입니다
-멘토 소개: https://notion.so/SzhTIOyVjOyVhOuztOq4sA==5&64-E66mU7J24IOuqqOuNuOungQ==42
+멘토 소개: https://notion.so/64-E66mU7J24IOuqqOuNuOungQ==42
 
-[K8S 알아보기] 아직 마감되지 않아 한번 더 공지드립니다
-    [도메인 모델링] 많은 관심 부탁드립니다
-    [K8S 알아보기] 한자리 남았습니다
-참고 부탁드립니다
+[도메인 모델링] 많은 관심 부탁드립니다
 
-[K8S 알아보기] 마감되었습니다. 감사합니다!
+[도메인 모델링] 마감되었습니다. 감사합니다!
 
 
-https://swmaestro.ai/7J207JuQ7KSA?SzhTIOyVjOyVhOuztOq4sA=5
+https://swmaestro.ai/7J207JuQ7KSA?64-E66mU7J24IOuqqOuNuOungQ=42
+https://swmaestro.ai/7J207JuQ7KSA?64-E66mU7J24IOuqqOuNuOungQ=10
+https://swmaestro.ai/7J207JuQ7KSA?64-E66mU7J24IOuqqOuNuOungQ=42
+https://swmaestro.ai/7J207JuQ7KSA?64-E66mU7J24IOuqqOuNuOungQ=42
+https://swmaestro.ai/7J207JuQ7KSA?64-E66mU7J24IOuqqOuNuOungQ=10
+https://swmaestro.ai/7J207JuQ7KSA?64-E66mU7J24IOuqqOuNuOungQ=42
+https://swmaestro.ai/7J207JuQ7KSA?64-E66mU7J24IOuqqOuNuOungQ=42
+https://swmaestro.ai/7J207JuQ7KSA?64-E66mU7J24IOuqqOuNuOungQ=42
+https://swmaestro.ai/7J207JuQ7KSA?64-E66mU7J24IOuqqOuNuOungQ=10
+https://swmaestro.ai/7J207JuQ7KSA?64-E66mU7J24IOuqqOuNuOungQ=42
+https://swmaestro.ai/7J207JuQ7KSA?64-E66mU7J24IOuqqOuNuOungQ=42
+https://swmaestro.ai/7J207JuQ7KSA?64-E66mU7J24IOuqqOuNuOungQ=42
+https://swmaestro.ai/7J207JuQ7KSA?64-E66mU7J24IOuqqOuNuOungQ=42
+https://swmaestro.ai/7J207JuQ7KSA?64-E66mU7J24IOuqqOuNuOungQ=10
+https://swmaestro.ai/7J207JuQ7KSA?64-E66mU7J24IOuqqOuNuOungQ=42
+https://swmaestro.ai/7J207JuQ7KSA?64-E66mU7J24IOuqqOuNuOungQ=42
+https://swmaestro.ai/7J207JuQ7KSA?64-E66mU7J24IOuqqOuNuOungQ=42
+https://swmaestro.ai/7J207JuQ7KSA?64-E66mU7J24IOuqqOuNuOungQ=42
+https://swmaestro.ai/7J207JuQ7KSA?64-E66mU7J24IOuqqOuNuOungQ=42
+https://swmaestro.ai/7J207JuQ7KSA?64-E66mU7J24IOuqqOuNuOungQ=10
 """
 
 let xo = """안녕하세요 이원준 멘토입니다
@@ -110,7 +134,15 @@ let multi = """안녕하세요 이원준 멘토입니다
 멘토 소개: https://notion.so/7Luk66as7Ja0IOyDgeuLtA==0
 
 https://swmaestro.ai/7J207JuQ7KSA?7ZWo7IiY7ZiVIO2KueqwlQ=72
-https://swmaestro.ai/7J207JuQ7KSA?7ZWo7IiY7ZiVIO2KueqwlQ=73
+https://swmaestro.ai/7J207JuQ7KSA?7ZWo7IiY7ZiVIO2KueqwlQ=101
+https://swmaestro.ai/7J207JuQ7KSA?7ZWo7IiY7ZiVIO2KueqwlQ=108
+https://swmaestro.ai/7J207JuQ7KSA?7ZWo7IiY7ZiVIO2KueqwlQ=108
+https://swmaestro.ai/7J207JuQ7KSA?7ZWo7IiY7ZiVIO2KueqwlQ=111
+https://swmaestro.ai/7J207JuQ7KSA?7ZWo7IiY7ZiVIO2KueqwlQ=32
+https://swmaestro.ai/7J207JuQ7KSA?7ZWo7IiY7ZiVIO2KueqwlQ=65
+https://swmaestro.ai/7J207JuQ7KSA?7ZWo7IiY7ZiVIO2KueqwlQ=83
+https://swmaestro.ai/7J207JuQ7KSA?7ZWo7IiY7ZiVIO2KueqwlQ=87
+https://swmaestro.ai/7J207JuQ7KSA?7ZWo7IiY7ZiVIO2KueqwlQ=33
 
 [커리어 상담] 마감되었습니다. 감사합니다!
 
@@ -120,7 +152,7 @@ https://swmaestro.ai/7J207JuQ7KSA?7ZWo7IiY7ZiVIO2KueqwlQ=33
 """
 
 let examples = [|
-    "HI! 출력", hi
+    "Hello ASW!! 출력", hi
     "별 찍기", star
     "XO 분기", xo
     "곱셈 (3×4)", multiply

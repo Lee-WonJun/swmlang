@@ -11,7 +11,7 @@
           <div class="select">
             <select onchange="${LoadExample}">
               <option value="" disabled selected>Load Example...</option>
-              <option value="0">HI! 출력</option>
+              <option value="0">Hello ASW!! 출력</option>
               <option value="1">별 찍기</option>
               <option value="2">XO 분기</option>
               <option value="3">곱셈 (3×4)</option>
@@ -53,21 +53,26 @@
         <details class="example-section">
           <summary>Syntax</summary>
           <div class="doc-content">
-            <div class="doc-section">Variables</div>
-            <div class="doc-item"><strong>이번에 [X] (정원 N) 을 개설했습니다</strong> declares or resets a local variable.</div>
-            <div class="doc-item"><strong>[X] 신청 바랍니다</strong> increments, <strong>[X] 한자리 남았습니다</strong> decrements.</div>
-            <div class="doc-item"><strong>[X] 잔여 N명입니다</strong>, <strong>[X] N자리 남았습니다</strong>, <strong>[X] N명 부족합니다</strong> assign values.</div>
-            <div class="doc-section">Output</div>
-            <div class="doc-item"><strong>[X] 많은 관심 부탁드립니다</strong> writes <code>X &amp; 0xFF</code> as a character.</div>
-            <div class="doc-item"><strong>[X] 현재 인원 공유드립니다</strong> writes the integer value.</div>
-            <div class="doc-section">Control Flow</div>
-            <div class="doc-item"><strong>[X] 아직 마감되지 않아 한번 더 공지드립니다</strong> starts a while loop; <strong>참고 부탁드립니다</strong> closes it.</div>
-            <div class="doc-item"><strong>[X] 인원 미달이라</strong> runs when X is zero; <strong>인원이 미달이더라도</strong> is else.</div>
-            <div class="doc-section">Functions</div>
-            <div class="doc-item"><strong>안녕하세요 함수명 멘토입니다</strong> starts a function definition.</div>
-            <div class="doc-item"><strong>멘토 소개: https://notion.so/...</strong> defines base64 parameter defaults.</div>
-            <div class="doc-item"><strong>https://swmaestro.ai/...</strong> calls a function.</div>
-            <div class="doc-item"><strong>[X] 마감되었습니다. 감사합니다!</strong> returns X, or exits at top-level.</div>
+            <div class="doc-section">변수와 정원</div>
+            <div class="doc-item"><strong>이번에 [X] (정원 N) 을 개설했습니다</strong> - 세션을 개설하듯 변수 <code>X</code>를 만들고 <code>N</code>으로 초기화합니다.</div>
+            <div class="doc-item"><strong>[X] 신청 바랍니다</strong> - 신청이 들어온 것처럼 값을 1 증가시킵니다.</div>
+            <div class="doc-item"><strong>[X] 한자리 남았습니다</strong> - 남은 자리가 줄어든 것처럼 값을 1 감소시킵니다.</div>
+            <div class="doc-item"><strong>[X] 잔여 N명입니다</strong>, <strong>[X] N자리 남았습니다</strong> - 값을 <code>N</code>으로 확정합니다.</div>
+            <div class="doc-item"><strong>[X] N명 부족합니다</strong> - 값을 <code>-N</code>으로 확정합니다.</div>
+            <div class="doc-section">출력</div>
+            <div class="doc-item"><strong>[X] 현재 인원 공유드립니다</strong> - 현재 값을 정수로 공유합니다.</div>
+            <div class="doc-item"><strong>[X] 많은 관심 부탁드립니다</strong> - 값의 하위 8비트를 문자로 출력합니다.</div>
+            <div class="doc-section">조건과 반복</div>
+            <div class="doc-item"><strong>[X] 인원 미달이라</strong> - <code>X == 0</code>일 때 블록을 실행합니다.</div>
+            <div class="doc-item"><strong>인원이 미달이더라도</strong> - <code>X != 0</code>일 때 실행할 else 블록을 시작합니다.</div>
+            <div class="doc-item"><strong>[X] 아직 마감되지 않아 한번 더 공지드립니다</strong> - <code>X != 0</code>인 동안 반복합니다.</div>
+            <div class="doc-item"><strong>참고 부탁드립니다</strong> - 조건문과 반복문의 블록을 닫습니다.</div>
+            <div class="doc-section">멘토와 신청 링크</div>
+            <div class="doc-item"><strong>안녕하세요 함수명 멘토입니다</strong> - 함수 정의를 시작합니다.</div>
+            <div class="doc-item"><strong>멘토 소개: https://notion.so/...</strong> - base64url 파라미터와 기본값으로 함수 시그니처를 선언합니다.</div>
+            <div class="doc-item"><strong>https://swmaestro.ai/...</strong> - 신청 링크처럼 함수를 호출합니다.</div>
+            <div class="doc-item"><strong>[X] 신청 링크: https://swmaestro.ai/...</strong> - 함수 반환값을 <code>X</code>에 저장합니다.</div>
+            <div class="doc-item"><strong>[X] 마감되었습니다. 감사합니다!</strong> - 함수에서는 <code>X</code>를 반환하고, top-level에서는 exit code를 확정합니다.</div>
           </div>
         </details>
       </div>

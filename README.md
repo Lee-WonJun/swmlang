@@ -5,10 +5,25 @@ Software Maestro Programming Language, `SwmLang`은 SW마에스트로 멘티들�
 낯선 기호와 차가운 문법 대신 익숙한 표현 속에서 값의 변화, 조건, 반복, 함수 호출을 다루며, 프로그래밍의 기본 원리를 조금 더 친근하고 장엄하게 학습할 수 있도록 설계되었습니다.
 
 ```swm
-이번에 [도메인 모델링] (정원 3) 을 개설했습니다
-[도메인 모델링] 신청 바랍니다
-[도메인 모델링] 신청 바랍니다
-[도메인 모델링] 현재 인원 공유드립니다
+안녕하세요 이원준 멘토입니다
+멘토 소개: https://notion.so/7ZWo7IiY7ZiVIO2KueqwlQ==72
+
+[함수형 특강] 많은 관심 부탁드립니다
+
+[함수형 특강] 마감되었습니다. 감사합니다!
+
+
+https://swmaestro.ai/7J207JuQ7KSA?7ZWo7IiY7ZiVIO2KueqwlQ=72
+https://swmaestro.ai/7J207JuQ7KSA?7ZWo7IiY7ZiVIO2KueqwlQ=101
+https://swmaestro.ai/7J207JuQ7KSA?7ZWo7IiY7ZiVIO2KueqwlQ=108
+https://swmaestro.ai/7J207JuQ7KSA?7ZWo7IiY7ZiVIO2KueqwlQ=108
+https://swmaestro.ai/7J207JuQ7KSA?7ZWo7IiY7ZiVIO2KueqwlQ=111
+https://swmaestro.ai/7J207JuQ7KSA?7ZWo7IiY7ZiVIO2KueqwlQ=32
+https://swmaestro.ai/7J207JuQ7KSA?7ZWo7IiY7ZiVIO2KueqwlQ=65
+https://swmaestro.ai/7J207JuQ7KSA?7ZWo7IiY7ZiVIO2KueqwlQ=83
+https://swmaestro.ai/7J207JuQ7KSA?7ZWo7IiY7ZiVIO2KueqwlQ=87
+https://swmaestro.ai/7J207JuQ7KSA?7ZWo7IiY7ZiVIO2KueqwlQ=33
+https://swmaestro.ai/7J207JuQ7KSA?7ZWo7IiY7ZiVIO2KueqwlQ=33
 ```
 
 신청 링크, 정원, 잔여 인원 같은 표현으로 변수와 제어 흐름을 다룹니다. 값은 `int64` 정수 하나만 사용하며, 함수 호출은 SW마에스트로 링크처럼 생긴 URL로 작성합니다.
@@ -156,9 +171,9 @@ https://swmaestro.ai/7J207JuQ7KSA?7ZWo7IiY7ZiVIO2KueqwlQ=72
 
 ## 예시
 
-### HI! 출력
+### Hello ASW!! 출력
 
-`examples/hi.swm`은 문자 하나를 출력하는 `이원준` 함수를 정의하고, `H`, `I`, `!`에 해당하는 ASCII 값을 전달해 `HI!`를 출력합니다.
+`examples/hi.swm`은 문자 하나를 출력하는 `이원준` 함수를 정의하고, `Hello ASW!!`에 해당하는 ASCII 값을 순서대로 전달해 문자열을 출력합니다.
 
 ```swm
 안녕하세요 이원준 멘토입니다
@@ -170,27 +185,51 @@ https://swmaestro.ai/7J207JuQ7KSA?7ZWo7IiY7ZiVIO2KueqwlQ=72
 
 
 https://swmaestro.ai/7J207JuQ7KSA?7ZWo7IiY7ZiVIO2KueqwlQ=72
-https://swmaestro.ai/7J207JuQ7KSA?7ZWo7IiY7ZiVIO2KueqwlQ=73
+https://swmaestro.ai/7J207JuQ7KSA?7ZWo7IiY7ZiVIO2KueqwlQ=101
+https://swmaestro.ai/7J207JuQ7KSA?7ZWo7IiY7ZiVIO2KueqwlQ=108
+https://swmaestro.ai/7J207JuQ7KSA?7ZWo7IiY7ZiVIO2KueqwlQ=108
+https://swmaestro.ai/7J207JuQ7KSA?7ZWo7IiY7ZiVIO2KueqwlQ=111
+https://swmaestro.ai/7J207JuQ7KSA?7ZWo7IiY7ZiVIO2KueqwlQ=32
+https://swmaestro.ai/7J207JuQ7KSA?7ZWo7IiY7ZiVIO2KueqwlQ=65
+https://swmaestro.ai/7J207JuQ7KSA?7ZWo7IiY7ZiVIO2KueqwlQ=83
+https://swmaestro.ai/7J207JuQ7KSA?7ZWo7IiY7ZiVIO2KueqwlQ=87
+https://swmaestro.ai/7J207JuQ7KSA?7ZWo7IiY7ZiVIO2KueqwlQ=33
 https://swmaestro.ai/7J207JuQ7KSA?7ZWo7IiY7ZiVIO2KueqwlQ=33
 ```
 
 ### 별 찍기
 
-`examples/star.swm`은 `K8S 알아보기` 값이 0이 될 때까지 `*`를 출력합니다.
+`examples/star.swm`은 문자 출력 함수를 호출해 별을 삼각형 모양으로 출력합니다.
 
 ```swm
 안녕하세요 이원준 멘토입니다
-멘토 소개: https://notion.so/SzhTIOyVjOyVhOuztOq4sA==5&64-E66mU7J24IOuqqOuNuOungQ==42
+멘토 소개: https://notion.so/64-E66mU7J24IOuqqOuNuOungQ==42
 
-[K8S 알아보기] 아직 마감되지 않아 한번 더 공지드립니다
-    [도메인 모델링] 많은 관심 부탁드립니다
-    [K8S 알아보기] 한자리 남았습니다
-참고 부탁드립니다
+[도메인 모델링] 많은 관심 부탁드립니다
 
-[K8S 알아보기] 마감되었습니다. 감사합니다!
+[도메인 모델링] 마감되었습니다. 감사합니다!
 
 
-https://swmaestro.ai/7J207JuQ7KSA?SzhTIOyVjOyVhOuztOq4sA=5
+https://swmaestro.ai/7J207JuQ7KSA?64-E66mU7J24IOuqqOuNuOungQ=42
+https://swmaestro.ai/7J207JuQ7KSA?64-E66mU7J24IOuqqOuNuOungQ=10
+https://swmaestro.ai/7J207JuQ7KSA?64-E66mU7J24IOuqqOuNuOungQ=42
+https://swmaestro.ai/7J207JuQ7KSA?64-E66mU7J24IOuqqOuNuOungQ=42
+https://swmaestro.ai/7J207JuQ7KSA?64-E66mU7J24IOuqqOuNuOungQ=10
+https://swmaestro.ai/7J207JuQ7KSA?64-E66mU7J24IOuqqOuNuOungQ=42
+https://swmaestro.ai/7J207JuQ7KSA?64-E66mU7J24IOuqqOuNuOungQ=42
+https://swmaestro.ai/7J207JuQ7KSA?64-E66mU7J24IOuqqOuNuOungQ=42
+https://swmaestro.ai/7J207JuQ7KSA?64-E66mU7J24IOuqqOuNuOungQ=10
+https://swmaestro.ai/7J207JuQ7KSA?64-E66mU7J24IOuqqOuNuOungQ=42
+https://swmaestro.ai/7J207JuQ7KSA?64-E66mU7J24IOuqqOuNuOungQ=42
+https://swmaestro.ai/7J207JuQ7KSA?64-E66mU7J24IOuqqOuNuOungQ=42
+https://swmaestro.ai/7J207JuQ7KSA?64-E66mU7J24IOuqqOuNuOungQ=42
+https://swmaestro.ai/7J207JuQ7KSA?64-E66mU7J24IOuqqOuNuOungQ=10
+https://swmaestro.ai/7J207JuQ7KSA?64-E66mU7J24IOuqqOuNuOungQ=42
+https://swmaestro.ai/7J207JuQ7KSA?64-E66mU7J24IOuqqOuNuOungQ=42
+https://swmaestro.ai/7J207JuQ7KSA?64-E66mU7J24IOuqqOuNuOungQ=42
+https://swmaestro.ai/7J207JuQ7KSA?64-E66mU7J24IOuqqOuNuOungQ=42
+https://swmaestro.ai/7J207JuQ7KSA?64-E66mU7J24IOuqqOuNuOungQ=42
+https://swmaestro.ai/7J207JuQ7KSA?64-E66mU7J24IOuqqOuNuOungQ=10
 ```
 
 ### XO 분기
@@ -277,7 +316,7 @@ SwmLang의 기본 연산은 increment, decrement, zero-test while로 구성되�
 
 ### 다중 함수 호출
 
-`examples/multi.swm`은 `김민수` 함수가 `이원준` 함수를 두 번 호출하고, top-level에서 마지막 호출을 이어 붙여 `HI!`를 출력합니다.
+`examples/multi.swm`은 `김민수` 함수가 `이원준` 함수를 여러 번 호출하고, top-level에서 마지막 호출을 이어 붙여 `Hello ASW!!`를 출력합니다.
 
 ```swm
 안녕하세요 이원준 멘토입니다
@@ -292,7 +331,15 @@ SwmLang의 기본 연산은 increment, decrement, zero-test while로 구성되�
 멘토 소개: https://notion.so/7Luk66as7Ja0IOyDgeuLtA==0
 
 https://swmaestro.ai/7J207JuQ7KSA?7ZWo7IiY7ZiVIO2KueqwlQ=72
-https://swmaestro.ai/7J207JuQ7KSA?7ZWo7IiY7ZiVIO2KueqwlQ=73
+https://swmaestro.ai/7J207JuQ7KSA?7ZWo7IiY7ZiVIO2KueqwlQ=101
+https://swmaestro.ai/7J207JuQ7KSA?7ZWo7IiY7ZiVIO2KueqwlQ=108
+https://swmaestro.ai/7J207JuQ7KSA?7ZWo7IiY7ZiVIO2KueqwlQ=108
+https://swmaestro.ai/7J207JuQ7KSA?7ZWo7IiY7ZiVIO2KueqwlQ=111
+https://swmaestro.ai/7J207JuQ7KSA?7ZWo7IiY7ZiVIO2KueqwlQ=32
+https://swmaestro.ai/7J207JuQ7KSA?7ZWo7IiY7ZiVIO2KueqwlQ=65
+https://swmaestro.ai/7J207JuQ7KSA?7ZWo7IiY7ZiVIO2KueqwlQ=83
+https://swmaestro.ai/7J207JuQ7KSA?7ZWo7IiY7ZiVIO2KueqwlQ=87
+https://swmaestro.ai/7J207JuQ7KSA?7ZWo7IiY7ZiVIO2KueqwlQ=33
 
 [커리어 상담] 마감되었습니다. 감사합니다!
 
