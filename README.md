@@ -199,37 +199,37 @@ https://swmaestro.ai/7J207JuQ7KSA?7ZWo7IiY7ZiVIO2KueqwlQ=33
 
 ### 별 찍기
 
-`examples/star.swm`은 문자 출력 함수를 호출해 별을 삼각형 모양으로 출력합니다.
+`examples/star.swm`은 반복문으로 현재 정원을 복사하고 복구하면서 별을 삼각형 모양으로 출력합니다.
 
 ```swm
-안녕하세요 이원준 멘토입니다
-멘토 소개: https://notion.so/64-E66mU7J24IOuqqOuNuOungQ==42
+이번에 [도메인 모델링] (정원 42) 을 개설했습니다
+이번에 [함수형 특강] (정원 10) 을 개설했습니다
+이번에 [K8S 알아보기] (정원 5) 을 개설했습니다
+이번에 [아키텍처 철학] (정원 1) 을 개설했습니다
+이번에 [자유멘토링] (정원 0) 을 개설했습니다
+이번에 [커리어 상담] (정원 0) 을 개설했습니다
 
-[도메인 모델링] 많은 관심 부탁드립니다
+[K8S 알아보기] 아직 마감되지 않아 한번 더 공지드립니다
+    [아키텍처 철학] 아직 마감되지 않아 한번 더 공지드립니다
+        [자유멘토링] 신청 바랍니다
+        [커리어 상담] 신청 바랍니다
+        [아키텍처 철학] 한자리 남았습니다
+    참고 부탁드립니다
 
-[도메인 모델링] 마감되었습니다. 감사합니다!
+    [커리어 상담] 아직 마감되지 않아 한번 더 공지드립니다
+        [아키텍처 철학] 신청 바랍니다
+        [커리어 상담] 한자리 남았습니다
+    참고 부탁드립니다
 
+    [자유멘토링] 아직 마감되지 않아 한번 더 공지드립니다
+        [도메인 모델링] 많은 관심 부탁드립니다
+        [자유멘토링] 한자리 남았습니다
+    참고 부탁드립니다
 
-https://swmaestro.ai/7J207JuQ7KSA?64-E66mU7J24IOuqqOuNuOungQ=42
-https://swmaestro.ai/7J207JuQ7KSA?64-E66mU7J24IOuqqOuNuOungQ=10
-https://swmaestro.ai/7J207JuQ7KSA?64-E66mU7J24IOuqqOuNuOungQ=42
-https://swmaestro.ai/7J207JuQ7KSA?64-E66mU7J24IOuqqOuNuOungQ=42
-https://swmaestro.ai/7J207JuQ7KSA?64-E66mU7J24IOuqqOuNuOungQ=10
-https://swmaestro.ai/7J207JuQ7KSA?64-E66mU7J24IOuqqOuNuOungQ=42
-https://swmaestro.ai/7J207JuQ7KSA?64-E66mU7J24IOuqqOuNuOungQ=42
-https://swmaestro.ai/7J207JuQ7KSA?64-E66mU7J24IOuqqOuNuOungQ=42
-https://swmaestro.ai/7J207JuQ7KSA?64-E66mU7J24IOuqqOuNuOungQ=10
-https://swmaestro.ai/7J207JuQ7KSA?64-E66mU7J24IOuqqOuNuOungQ=42
-https://swmaestro.ai/7J207JuQ7KSA?64-E66mU7J24IOuqqOuNuOungQ=42
-https://swmaestro.ai/7J207JuQ7KSA?64-E66mU7J24IOuqqOuNuOungQ=42
-https://swmaestro.ai/7J207JuQ7KSA?64-E66mU7J24IOuqqOuNuOungQ=42
-https://swmaestro.ai/7J207JuQ7KSA?64-E66mU7J24IOuqqOuNuOungQ=10
-https://swmaestro.ai/7J207JuQ7KSA?64-E66mU7J24IOuqqOuNuOungQ=42
-https://swmaestro.ai/7J207JuQ7KSA?64-E66mU7J24IOuqqOuNuOungQ=42
-https://swmaestro.ai/7J207JuQ7KSA?64-E66mU7J24IOuqqOuNuOungQ=42
-https://swmaestro.ai/7J207JuQ7KSA?64-E66mU7J24IOuqqOuNuOungQ=42
-https://swmaestro.ai/7J207JuQ7KSA?64-E66mU7J24IOuqqOuNuOungQ=42
-https://swmaestro.ai/7J207JuQ7KSA?64-E66mU7J24IOuqqOuNuOungQ=10
+    [함수형 특강] 많은 관심 부탁드립니다
+    [아키텍처 철학] 신청 바랍니다
+    [K8S 알아보기] 한자리 남았습니다
+참고 부탁드립니다
 ```
 
 ### XO 분기
