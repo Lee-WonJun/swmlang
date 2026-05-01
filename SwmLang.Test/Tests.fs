@@ -154,7 +154,7 @@ https://swmaestro.ai/7J207JuQ7KSA?7ZWo7IiY7ZiVIO2KueqwlQ=111
 https://swmaestro.ai/7J207JuQ7KSA?7ZWo7IiY7ZiVIO2KueqwlQ=32
 https://swmaestro.ai/7J207JuQ7KSA?7ZWo7IiY7ZiVIO2KueqwlQ=65
 https://swmaestro.ai/7J207JuQ7KSA?7ZWo7IiY7ZiVIO2KueqwlQ=83
-https://swmaestro.ai/7J207JuQ7KSA?7ZWo7IiY7ZiVIO2KueqwlQ=87
+https://swmaestro.ai/7J207JuQ7KSA?7ZWo7IiY7ZiVIO2KueqwlQ=77
 https://swmaestro.ai/7J207JuQ7KSA?7ZWo7IiY7ZiVIO2KueqwlQ=33
 https://swmaestro.ai/7J207JuQ7KSA?7ZWo7IiY7ZiVIO2KueqwlQ=33
 """
@@ -259,10 +259,10 @@ let private counterCode = """
 """
 
 [<Fact>]
-let ``실행 - Hello ASW!! 출력`` () =
+let ``실행 - Hello ASM!! 출력`` () =
     for name, parse in parsers () do
         let state = runWith parse hiCode
-        Assert.Equal("Hello ASW!!", state.StandardOutput)
+        Assert.Equal("Hello ASM!!", state.StandardOutput)
         Assert.Equal(0, state.ExitCode)
 
 [<Fact>]
@@ -327,7 +327,7 @@ https://swmaestro.ai/7J207JuQ7KSA?7ZWo7IiY7ZiVIO2KueqwlQ=111
 https://swmaestro.ai/7J207JuQ7KSA?7ZWo7IiY7ZiVIO2KueqwlQ=32
 https://swmaestro.ai/7J207JuQ7KSA?7ZWo7IiY7ZiVIO2KueqwlQ=65
 https://swmaestro.ai/7J207JuQ7KSA?7ZWo7IiY7ZiVIO2KueqwlQ=83
-https://swmaestro.ai/7J207JuQ7KSA?7ZWo7IiY7ZiVIO2KueqwlQ=87
+https://swmaestro.ai/7J207JuQ7KSA?7ZWo7IiY7ZiVIO2KueqwlQ=77
 https://swmaestro.ai/7J207JuQ7KSA?7ZWo7IiY7ZiVIO2KueqwlQ=33
 
 [커리어 상담] 마감되었습니다. 감사합니다!
@@ -341,7 +341,7 @@ https://swmaestro.ai/7J207JuQ7KSA?7ZWo7IiY7ZiVIO2KueqwlQ=33
 let ``실행 - 다중 함수 호출`` () =
     for _, parse in parsers () do
         let state = runWith parse multiCode
-        Assert.Equal("Hello ASW!!", state.StandardOutput)
+        Assert.Equal("Hello ASM!!", state.StandardOutput)
 
 [<Fact>]
 let ``파서 동일성 - 모든 예시에서 3개 파서가 같은 AST를 생성`` () =
