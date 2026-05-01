@@ -39,14 +39,21 @@ let private lineParsers (line: SourceLine) : XParser<LineNode> =
     }
 
     // 멘토 소개: https://notion.so/<시그니처>
-    let signature =
-        keywords ["멘토"; "소개:"] >>. ws >>. skipString "https://notion.so/" >>. rest
-        |>> Signature
+    let signature = parse {
+        do! keywords ["멘토"; "소개:"]
+        do! ws
+        do! skipString "https://notion.so/"
+        let! text = rest
+        return Signature text
+    }
 
     // [X] 마감되었습니다. 감사합니다!
-    let returnStmt =
-        bracket .>> ws .>> skipString "마감되었습니다. 감사합니다!"
-        |>> (Return >> Statement)
+    let returnStmt = parse {
+        let! name = bracket
+        do! ws
+        do! skipString "마감되었습니다. 감사합니다!"
+        return Statement(Return name)
+    }
 
     // 이번에 [X] (정원 N) 을 개설했습니다
     let declare = parse {
@@ -60,14 +67,20 @@ let private lineParsers (line: SourceLine) : XParser<LineNode> =
     }
 
     // [X] 신청 바랍니다
-    let increment =
-        bracket .>> ws .>> keywords ["신청"; "바랍니다"]
-        |>> (Increment >> Statement)
+    let increment = parse {
+        let! name = bracket
+        do! ws
+        do! keywords ["신청"; "바랍니다"]
+        return Statement(Increment name)
+    }
 
     // [X] 한자리 남았습니다
-    let decrement =
-        bracket .>> ws .>> keywords ["한자리"; "남았습니다"]
-        |>> (Decrement >> Statement)
+    let decrement = parse {
+        let! name = bracket
+        do! ws
+        do! keywords ["한자리"; "남았습니다"]
+        return Statement(Decrement name)
+    }
 
     // [X] N자리 남았습니다
     let assignSeat = parse {
@@ -95,37 +108,55 @@ let private lineParsers (line: SourceLine) : XParser<LineNode> =
     }
 
     // [X] 많은 관심 부탁드립니다
-    let putChar =
-        bracket .>> ws .>> keywords ["많은"; "관심"; "부탁드립니다"]
-        |>> (PutChar >> Statement)
+    let putChar = parse {
+        let! name = bracket
+        do! ws
+        do! keywords ["많은"; "관심"; "부탁드립니다"]
+        return Statement(PutChar name)
+    }
 
     // [X] 현재 인원 공유드립니다
-    let printInt =
-        bracket .>> ws .>> keywords ["현재"; "인원"; "공유드립니다"]
-        |>> (PrintInt >> Statement)
+    let printInt = parse {
+        let! name = bracket
+        do! ws
+        do! keywords ["현재"; "인원"; "공유드립니다"]
+        return Statement(PrintInt name)
+    }
 
     // [X] 아직 마감되지 않아 한번 더 공지드립니다
-    let whileStmt =
-        bracket .>> ws .>> keywords ["아직"; "마감되지"; "않아"; "한번"; "더"; "공지드립니다"]
-        |>> (fun name -> Statement(While(name, [])))
+    let whileStmt = parse {
+        let! name = bracket
+        do! ws
+        do! keywords ["아직"; "마감되지"; "않아"; "한번"; "더"; "공지드립니다"]
+        return Statement(While(name, []))
+    }
 
     // [X] 인원 미달이라
-    let ifStmt =
-        bracket .>> ws .>> keywords ["인원"; "미달이라"]
-        |>> (fun name -> Statement(If(name, [], None)))
+    let ifStmt = parse {
+        let! name = bracket
+        do! ws
+        do! keywords ["인원"; "미달이라"]
+        return Statement(If(name, [], None))
+    }
 
     // 인원이 미달이더라도
-    let elseStmt =
-        keywords ["인원이"; "미달이더라도"] >>% Else
+    let elseStmt = parse {
+        do! keywords ["인원이"; "미달이더라도"]
+        return Else
+    }
 
     // 참고 부탁드립니다
-    let blockEnd =
-        keywords ["참고"; "부탁드립니다"] >>% BlockEnd
+    let blockEnd = parse {
+        do! keywords ["참고"; "부탁드립니다"]
+        return BlockEnd
+    }
 
     // https://swmaestro.ai/<호출>
-    let call =
-        skipString "https://swmaestro.ai/" >>. rest
-        |>> (fun t -> Statement(CallIgnore(parseCall line t)))
+    let call = parse {
+        do! skipString "https://swmaestro.ai/"
+        let! text = rest
+        return Statement(CallIgnore(parseCall line text))
+    }
 
     // [X] 신청 링크: https://swmaestro.ai/<호출>
     let callAssign = parse {
