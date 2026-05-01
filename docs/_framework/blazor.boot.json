@@ -1,7 +1,7 @@
 {
   "mainAssemblyName": "SwmLang.Client",
   "resources": {
-    "hash": "sha256-XUWuNUkrDds97WLWpC3wyn7UaL+pcOpueiXFwSl6xQE=",
+    "hash": "sha256-aYC53aTN+5tKUbqJl7JLdK0nQqFq4eg/oqKAOZGL4kI=",
     "jsModuleNative": {
       "dotnet.native.js": "sha256-A16ka545FHaB+QXjyJ4exXh7XpBAAIFnX8YkC4xAng8="
     },
@@ -60,7 +60,7 @@
       "System.Threading.Tasks.Parallel.wasm": "sha256-PfA7K7lp9gNKvz1R8GGlrWuPOwYPYg0hXx3f43iXN7I=",
       "netstandard.wasm": "sha256-ucJVRzPpWxIPKHAJscJ+Jawq97fEQbbSGP/wlud9oCQ=",
       "System.Private.CoreLib.wasm": "sha256-Irs0Ww11dPVwu5qAj55aQ+8jfcQJHnR7TYkMRjXpLe8=",
-      "SwmLang.Client.wasm": "sha256-3L+0qOFeiOFbsuIqri6nHhwMu0ruOYTg+QQnwLUito0="
+      "SwmLang.Client.wasm": "sha256-YQF/FTZl8+Ryl9PK7Da4rfB5IVVdUVaXvrZpMCHyRCM="
     }
   },
   "cacheBootResources": true,
